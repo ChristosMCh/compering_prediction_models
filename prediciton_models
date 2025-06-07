@@ -1,0 +1,347 @@
+import pandas as pd                                                     # For working with data tables
+from sklearn.model_selection import train_test_split, cross_val_score   # To split our data (Train & Test)
+from sklearn.linear_model import LinearRegression                       # Liniear Regression
+from sklearn.tree import DecisionTreeRegressor                          # Decision Tree
+from sklearn.ensemble import RandomForestRegressor                      # Radom Forest
+from sklearn.ensemble import GradientBoostingRegressor                  # Gradient Boosting Regressor
+from sklearn.neighbors import KNeighborsRegressor                       # K-Nearest Neighbors Regressor
+from sklearn.svm import SVR                                             # Support Vector Regressor
+from sklearn.metrics import mean_squared_error, r2_score                # To evaluate the model
+import numpy as np
+
+data = pd.read_csv(r'/student-mat.csv', sep=';') # Import the data (Student Performance Predictions)
+
+print(data.head())
+
+features = ['G1', 'G2', 'studytime', 'failures']
+X = data[features]   # Inputs
+y = data['G3']       # Target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # Splitting the Data
+
+# Liniear Regression
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+predictions = model.predict(X_test)
+mse = mean_squared_error(y_test, predictions)
+print("Mean Squared Error:", mse)
+
+# Comparison table of Actual VS Predicted (Liniear Regression)
+results = pd.DataFrame({'Actual': y_test, 'Predicted': predictions})
+print(results.head())
+
+# Decision Tree
+tree_model = DecisionTreeRegressor(random_state=42)
+tree_model.fit(X_train, y_train)
+
+tree_predictions = tree_model.predict(X_test)
+tree_mse = mean_squared_error(y_test, tree_predictions)
+print("Decision Tree Mean Squared Error:", tree_mse)
+
+# Comparison table of Actual VS Predicted (Decision Tree)
+results_tree = pd.DataFrame({'Actual': y_test, 'Predicted': tree_predictions})
+print(results_tree.head())
+
+# Random Forest
+forest_model = RandomForestRegressor(n_estimators=100, random_state=42)
+forest_model.fit(X_train, y_train)
+
+forest_predictions = forest_model.predict(X_test)
+forest_mse = mean_squared_error(y_test, forest_predictions)
+print("Random Forest Mean Squared Error:", forest_mse)
+
+# Comparison table of Actual VS Predicted (Radom Forest)
+results_forest = pd.DataFrame({'Actual': y_test, 'Predicted': forest_predictions})
+print(results_forest.head())
+
+#  Gradient Boosting Regressor
+gbr_model = GradientBoostingRegressor(random_state=42)
+gbr_model.fit(X_train, y_train)
+gbr_predictions = gbr_model.predict(X_test)
+gbr_mse = mean_squared_error(y_test, gbr_predictions)
+print("Gradient Boosting MSE:", gbr_mse)
+# Comparison table of Actual VS Predicted (Gradient Boosting Regressor)
+results_gbr = pd.DataFrame({'Actual': y_test, 'Predicted': gbr_predictions})
+print("Gradient Boosting:\n", results_gbr.head())
+
+# K-Nearest Neighbors Regressor
+knn_model = KNeighborsRegressor(n_neighbors=5) 
+knn_model.fit(X_train, y_train)
+knn_predictions = knn_model.predict(X_test)
+knn_mse = mean_squared_error(y_test, knn_predictions)
+print("K-Nearest Neighbors MSE:", knn_mse)
+# Comparison table of Actual VS Predicted (K-Nearest Neighbors Regressor)
+results_knn = pd.DataFrame({'Actual': y_test, 'Predicted': knn_predictions})
+print("K-Nearest Neighbors:\n", results_knn.head())
+
+# Support Vector Regressor
+svr_model = SVR(kernel='rbf')  # Try also 'linear' or 'poly'
+svr_model.fit(X_train, y_train)
+svr_predictions = svr_model.predict(X_test)
+svr_mse = mean_squared_error(y_test, svr_predictions)
+print("Support Vector Regressor MSE:", svr_mse)
+# Comparison table of Actual VS Predicted (Support Vector Regressor)
+results_svr = pd.DataFrame({'Actual': y_test, 'Predicted': svr_predictions})
+print("Support Vector Regressor:\n", results_svr.head())
+
+import matplotlib.pyplot as plt
+
+# Create the DataFrame with all model results
+comparison = pd.DataFrame({
+    'Actual': y_test.values,
+    'Linear': predictions,
+    'DecisionTree': tree_predictions,
+    'RandomForest': forest_predictions,
+    'GradientBoosting': gbr_predictions,
+    'KNN': knn_predictions,
+    'SVR': svr_predictions
+})
+
+# Plotting
+plt.figure(figsize=(14, 6))
+plt.plot(comparison['Actual'].values, label='Actual', linestyle='--', marker='o')
+
+# Add model predictions
+plt.plot(comparison['Linear'].values, label='Linear Regression')
+plt.plot(comparison['DecisionTree'].values, label='Decision Tree')
+plt.plot(comparison['RandomForest'].values, label='Random Forest')
+plt.plot(comparison['GradientBoosting'].values, label='Gradient Boosting')
+plt.plot(comparison['KNN'].values, label='KNN')
+plt.plot(comparison['SVR'].values, label='SVR')
+
+np.random.seed(42)
+n_samples = 400
+sample_data = {
+    'G1': np.random.randint(0, 20, n_samples),
+    'G2': np.random.randint(0, 20, n_samples),
+    'studytime': np.random.randint(1, 5, n_samples),
+    'failures': np.random.randint(0, 4, n_samples),
+}
+
+# Create G3 with some relationship to other grades plus noise
+sample_data['G3'] = (sample_data['G1'] * 0.3 + sample_data['G2'] * 0.4 + 
+                     sample_data['studytime'] * 0.8 + 
+                     np.random.normal(0, 2, n_samples)).clip(0, 20)
+
+data = pd.DataFrame(sample_data)
+print("Sample data created for demonstration")
+print(data.head())
+
+features = ['G1', 'G2', 'studytime', 'failures']
+X = data[features]
+y = data['G3']
+
+# Splitting Data, again
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize models with better parameters to reduce overfitting
+models = {
+    
+# No parameters set, (Linear Regression is a simple model that usually doesn’t overfit easily.)
+    'Linear Regression': LinearRegression(),
+    
+# For Decision Tree : 
+#   'max_depth=5' Limits how deep the tree can grow. Without this, trees tend to memorize the training data. So, This prevents the tree from growing too complex and capturing noise.
+#   'min_samples_split=10' In order to split the node, it requires at least 10 samples to be split. But also, Prevents the tree from splitting on tiny subsets, which often leads to overfitting.
+    'Decision Tree': DecisionTreeRegressor(random_state=42, max_depth=5, min_samples_split=10),
+       
+# For Random Forest
+#   'm_estimators=100' I used 100 trees. (A pretty common value)
+#  Radom Forest is better at handling overfitting due to averaging many trees, but with the parameters below the risk is being reduce even further :
+#   'max_depth=10' Each tree is allowed to grow only to depth 10.
+#   'min_samples_split=5' Requires at least 5 samples to split a node.
+    'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42, max_depth=10, min_samples_split=5),
+    
+# Gradien Boosting
+#   'max_depth=3' Shallow trees used in boosting. 
+#   'learning_rate=0.1' Controlling how much each tree contributes to the final prediciton.
+#  Keep in mind that Gradien Boosting is very powerful but prone to overfitting.    
+    'Gradient Boosting': GradientBoostingRegressor(random_state=42, max_depth=3, learning_rate=0.1),
+    
+# KNeighbors Regressor
+#   "kernal-'rbf'" Non-linear kernel which allows modeling more complex relationships.
+#  If you use too few neighbors (For example 1), the model can memorize the training data. Using 5 makes the prediction more stable and smooth, reducing variance.
+    'KNN': KNeighborsRegressor(n_neighbors=5),
+
+# SVR
+#   'C1.0' Regularization parameter, when lower = simpler moder (more regularization). When higher = fits training data better but more risk of overfitting.
+#   "gamma='scale'" Controls how far the influence of a single training example reaches.
+#  These settings aim to avoid making SVR too sensitive to the training data.
+    'SVR': SVR(kernel='rbf', C=1.0, gamma='scale')
+}
+
+# Function to evaluate overfitting
+def evaluate_overfitting(model, X_train, X_test, y_train, y_test, model_name):
+    # Fit the model
+    model.fit(X_train, y_train)
+    
+    # Training predictions and metrics
+    train_pred = model.predict(X_train)
+    train_mse = mean_squared_error(y_train, train_pred)
+    train_r2 = r2_score(y_train, train_pred)
+    
+    # Test predictions and metrics
+    test_pred = model.predict(X_test)
+    test_mse = mean_squared_error(y_test, test_pred)
+    test_r2 = r2_score(y_test, test_pred)
+    
+    # Cross-validation score
+    cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+    cv_mse = -cv_scores.mean()
+    cv_std = cv_scores.std()
+    
+    # Calculate overfitting indicators
+    mse_diff = train_mse - test_mse
+    r2_diff = train_r2 - test_r2
+    
+    return {
+        'Model': model_name,
+        'Train_MSE': train_mse,
+        'Test_MSE': test_mse,
+        'Train_R2': train_r2,
+        'Test_R2': test_r2,
+        'CV_MSE': cv_mse,
+        'CV_STD': cv_std,
+        'MSE_Diff': mse_diff,
+        'R2_Diff': r2_diff,
+        'Predictions': test_pred
+    }
+
+# Evaluate all models
+results = []
+predictions_dict = {'Actual': y_test.values}
+
+for name, model in models.items():
+    result = evaluate_overfitting(model, X_train, X_test, y_train, y_test, name)
+    results.append(result)
+    predictions_dict[name] = result['Predictions']
+
+# Create comprehensive results DataFrame
+results_df = pd.DataFrame(results)
+results_df = results_df.round(3)
+
+print("\n" + "="*80)
+print("OVERFITTING ANALYSIS RESULTS")
+print("="*80)
+print(results_df[['Model', 'Train_MSE', 'Test_MSE', 'CV_MSE', 'MSE_Diff', 'Train_R2', 'Test_R2', 'R2_Diff']])
+
+# Overfitting detection
+print("\n" + "="*80)
+print("OVERFITTING INDICATORS")
+print("="*80)
+
+for _, row in results_df.iterrows():
+    model_name = row['Model']
+    print(f"\n{model_name}:")
+    
+    # Check for overfitting signs
+    overfitting_signs = []
+    
+    if row['Train_MSE'] < row['Test_MSE'] * 0.7:  # Training MSE much lower than test MSE
+        overfitting_signs.append("Training MSE significantly lower than test MSE")
+    
+    if row['R2_Diff'] > 0.1:  # Large difference in R² scores
+        overfitting_signs.append(f"Large R² difference: {row['R2_Diff']:.3f}")
+    
+    if row['CV_STD'] > row['CV_MSE'] * 0.3:  # High variance in cross-validation
+        overfitting_signs.append("High variance in cross-validation")
+    
+    if row['Train_R2'] > 0.95 and row['Test_R2'] < 0.8:  # Perfect training, poor testing
+        overfitting_signs.append("Excellent training performance, poor test performance")
+    
+    if overfitting_signs:
+        print(f"  🚨 POTENTIAL OVERFITTING DETECTED:")
+        for sign in overfitting_signs:
+            print(f"    - {sign}")
+    else:
+        print(f"  ✅ No significant overfitting detected")
+    
+    print(f"  Train R²: {row['Train_R2']:.3f}, Test R²: {row['Test_R2']:.3f}")
+    print(f"  Cross-validation MSE: {row['CV_MSE']:.3f} ± {row['CV_STD']:.3f}")
+
+# Create visualizations
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+
+# 1. Training vs Test MSE comparison
+ax1 = axes[0, 0]
+models_names = results_df['Model']
+train_mse = results_df['Train_MSE']
+test_mse = results_df['Test_MSE']
+
+x = np.arange(len(models_names))
+width = 0.35
+
+ax1.bar(x - width/2, train_mse, width, label='Training MSE', alpha=0.7)
+ax1.bar(x + width/2, test_mse, width, label='Test MSE', alpha=0.7)
+ax1.set_xlabel('Models')
+ax1.set_ylabel('MSE')
+ax1.set_title('Training vs Test MSE (Lower is Better)')
+ax1.set_xticks(x)
+ax1.set_xticklabels(models_names, rotation=45, ha='right')
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+
+# 2. R² scores comparison
+ax2 = axes[0, 1]
+train_r2 = results_df['Train_R2']
+test_r2 = results_df['Test_R2']
+
+ax2.bar(x - width/2, train_r2, width, label='Training R²', alpha=0.7)
+ax2.bar(x + width/2, test_r2, width, label='Test R²', alpha=0.7)
+ax2.set_xlabel('Models')
+ax2.set_ylabel('R² Score')
+ax2.set_title('Training vs Test R² Scores (Higher is Better)')
+ax2.set_xticks(x)
+ax2.set_xticklabels(models_names, rotation=45, ha='right')
+ax2.legend()
+ax2.grid(True, alpha=0.3)
+
+# 3. Predictions comparison
+ax3 = axes[1, 0]
+comparison_df = pd.DataFrame(predictions_dict)
+sample_indices = range(min(50, len(comparison_df)))  # Show first 50 samples
+
+ax3.plot(sample_indices, comparison_df['Actual'].iloc[sample_indices], 
+         'o-', label='Actual', linewidth=2, markersize=4)
+
+colors = ['red', 'green', 'blue', 'orange', 'purple', 'brown']
+for i, model_name in enumerate(models.keys()):
+    ax3.plot(sample_indices, comparison_df[model_name].iloc[sample_indices], 
+             '--', label=model_name, alpha=0.7, color=colors[i])
+
+ax3.set_xlabel('Sample Index')
+ax3.set_ylabel('Grade (G3)')
+ax3.set_title('Actual vs Predicted Values (First 50 Samples)')
+ax3.legend()
+ax3.grid(True, alpha=0.3)
+
+# 4. Overfitting risk assessment
+ax4 = axes[1, 1]
+risk_scores = []
+risk_labels = []
+
+for _, row in results_df.iterrows():
+    # Calculate overfitting risk score (0-100)
+    risk = 0
+    if row['Train_MSE'] < row['Test_MSE'] * 0.7:
+        risk += 30
+    if row['R2_Diff'] > 0.1:
+        risk += 25
+    if row['CV_STD'] > row['CV_MSE'] * 0.3:
+        risk += 25
+    if row['Train_R2'] > 0.95 and row['Test_R2'] < 0.8:
+        risk += 20
+    
+    risk_scores.append(min(risk, 100))
+    risk_labels.append(row['Model'])
+
+colors_risk = ['green' if score < 30 else 'yellow' if score < 60 else 'red' for score in risk_scores]
+ax4.barh(risk_labels, risk_scores, color=colors_risk, alpha=0.7)
+ax4.set_xlabel('Overfitting Risk Score')
+ax4.set_title('Overfitting Risk Assessment')
+ax4.set_xlim(0, 100)
+ax4.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
